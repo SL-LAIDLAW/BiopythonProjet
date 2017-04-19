@@ -12,17 +12,19 @@
 
 
 # Obtenir terme de recherche
-	echo "$(tput setaf 5)####$(tput sgr 0) Votre recherche? (tappez 'd' pour default, c'est à dire, ma requete du projet)"
-	# read search_term
+	echo "$(tput setaf 5)####$(tput sgr 0) Recherche du projet ou personalisé? (projet/custom)"
+	# read default_search
 		while true; do
-		read search_term
-		if [ "$search_term" = "d" ]
+		read default_search
+		if [ "$default_search" = "projet" ]
 			then
-				search_term="dec2 mRNA for bhLH protein complete cds "
-		elif [ "$search_term" = "" ]
+				default_search="True"
+		elif [ "$default_search" = "custom" ]
 			then
-				echo "$(tput setaf 1)Erreur : la réponse n'est pas valide, veuillez entrer des termes de recherche$(tput sgr 0)"
-				continue
+				default_search="False"
+		else
+			echo "$(tput setaf 1)Erreur : la réponse n'est pas valide, veuillez entrer \"projet\" ou \"custom\"$(tput sgr 0)"
+			continue
 		fi
 		break
 	done
@@ -77,5 +79,48 @@ echo " "
 	done
 
 
-echo "Lancons le .py : cette opération est suseptible de prendre quelques minutes..."
-python Bioinfo.py "$search_term" "$format" "$email"
+echo " "
+echo " "
+
+
+# Garde resultats des Humains?
+	echo "$(tput setaf 5)####$(tput sgr 0) Est-ce qu'on garde les résultats des humains (y/n)"
+		while true; do
+			read skip_humans
+			if [ "$skip_humans" = "n" ] || [ "$skip_humans" = "N" ]
+				then skip_humans="True"
+			elif [ "$skip_humans" = "y" ] || [ "$skip_humans" = "Y" ]
+				then skip_humans="False"
+			elif [ "$skip_humans" != "y" ] || [ "$skip_humans" != "n" ]
+				then
+					echo "$(tput setaf 1)Erreur : la réponse n'est pas valide, repondez par \"y\" ou \"n\"$(tput sgr 0)"
+					continue
+		fi
+		break
+	done
+
+
+echo " "
+echo " "
+
+
+# Garde resultats des Humains?
+	echo "$(tput setaf 5)####$(tput sgr 0) Est-ce qu'on garde les prédictions? (y/n)"
+		while true; do
+			read skip_predictions
+			if [ "$skip_predictions" = "n" ] || [ "$skip_predictions" = "N" ]
+				then skip_predictions="True"
+			elif [ "$skip_predictions" = "y" ] || [ "$skip_predictions" = "Y" ]
+				then skip_predictions="False"
+			elif [ "$skip_predictions" != "y" ] || [ "$skip_predictions" != "n" ]
+				then
+					echo "$(tput setaf 1)Erreur : la réponse n'est pas valide, repondez par \"y\" ou \"n\"$(tput sgr 0)"
+					continue
+		fi
+		break
+	done
+
+
+echo "Lancons le .py..."
+
+python Bioinfo.py "$default_search" "$format" "$email" "$skip_humans" "$skip_predictions"
