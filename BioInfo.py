@@ -34,7 +34,7 @@ if default_search == "True":
 
 if default_search == "False":
 	print(">> Vous avez choisi de rechercher une séquence")
-	search_query = raw_input("Votre Recherche?.. ")
+	search_query = input("Votre Recherche?.. ")
 	# Lancons la rêquete
 	choixRetstart = 10
 	choixRetmax = 10
@@ -47,11 +47,11 @@ if default_search == "False":
 				Texte_a_ecrire = '{:>15}    {:.57}'.format(" " + str(myId), str(record['Title']))
 				print("%s" % Texte_a_ecrire)
 
-		Id_correspondant = raw_input("\nQuel ID à choisir? (tappez 'plus' pour plus de valeurs, ou 'retour' pour changer l'objet de recherche).. ")
+		Id_correspondant = input("\nQuel ID à choisir? (tappez 'plus' pour plus de valeurs, ou 'retour' pour changer l'objet de recherche).. ")
 		if Id_correspondant == "plus":
 			choixRetstart = int(choixRetstart) + 10
 		elif Id_correspondant == "retour":
-			search_query = raw_input("Votre Recherche?.. ")
+			search_query = input("Votre Recherche?.. ")
 		else:
 			break
 	requete_Brut.close()
@@ -192,7 +192,10 @@ for myId in myIds:
 	# Declarons variables, et disons ce qu'on fait
 	compteur +=1
 	Organisme_interet = str(OrganismeDict[HSPdict[myId]])
-	print("\n> Début du boucle nb." + str(compteur) + " sur l'espèce :")
+	message = "\n> Début du boucle nb." + str(compteur) + " sur l'espèce :"
+	message = str("echo \"$(tput setaf 6)" + message + "$(tput sgr 0)\"")
+	os.system(message)
+	
 	print(str(myId) + " : " + Organisme_interet)
 	
 	# Cherchons le séquence correspondant à notre Id
@@ -224,9 +227,9 @@ for myId in myIds:
 	#Mise en place des dictionaires
 	microHSPdict = {}
 	for record in NCBIXML.parse(open(exportNameBLAST)) :
-	    if record.alignments :
-	        for align in record.alignments :
-	            for hsp in align.hsps:
+		if record.alignments :
+			for align in record.alignments :
+				for hsp in align.hsps:
 					newdictValue = {align.hit_id : hsp.bits}
 					Organisme = align.hit_def.replace("PREDICTED: ","")
 					Organisme = re.findall(regexOrganisme, Organisme)[0]
@@ -261,14 +264,18 @@ for myId in myIds:
 	regexID = r"(?<=[a-z]{3}\|)(.*)(?=\|)"
 	for score in HPS_trie:
 		microID = microHSPdict[score]
-		microID = re.findall(regexID, microID)[0]
+		try:
+			microID = re.findall(regexID, microID)[0]
+		except:
+			microID = microHSPdict[score]
 		Texte_a_ecrire = '{:>9}      {:25} {:21}'.format(" " + str(float(score)), str(OrganismeDict[score]),str(microID))
 		results_File.write("%s\n" % Texte_a_ecrire)
 	results_File.write("" + "\n")
- 	print("> End of loop nb." + str(compteur))
+
+	print("> fin du boucle nb." + str(compteur))
 
 
-print "\n>> Resultats Enregistrés sous \"resultats.txt\""
+print("\n>> Resultats Enregistrés sous \"resultats.txt\"")
 
 
 

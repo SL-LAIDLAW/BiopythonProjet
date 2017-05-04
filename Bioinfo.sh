@@ -12,7 +12,7 @@
 
 
 # Obtenir l'objet de recherche
-	echo "$(tput setaf 5)####$(tput sgr 0) Recherche du projet ou personalisé? (projet/custom)"
+	echo "$(tput setaf 5)####$(tput sgr 0) Recherche du projet ou personalisé ? (projet/custom)"
 	# read default_search
 		while true; do
 		read default_search
@@ -47,4 +47,4 @@ echo " "
 
 echo "Lancons le .py..."
 
-python Bioinfo.py "$default_search" "$email" "$skip_predictions" "$blast_type"
+python3 BioInfo.py "$default_search" "$email" "$skip_predictions" "$blast_type"
