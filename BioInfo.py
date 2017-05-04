@@ -7,21 +7,32 @@
 import os
 import re
 import sys
+import subprocess
 from Bio import Entrez
 from Bio import SeqIO
 from Bio.Blast import NCBIWWW
 from Bio.Blast import NCBIXML
 from Bio.Blast.Applications import NcbiblastnCommandline
 
+from Bio.Align.Applications import ClustalOmegaCommandline
+from Bio import AlignIO
+from Bio import Phylo
+
+
+# # Les arguments passés à notre script python à partir du .sh
+# default_search = str(sys.argv[1])
+# Entrez.email = str(sys.argv[2])
+# skip_predictions = str(sys.argv[3])
+# blast_type = str(sys.argv[4])
 
 # Les arguments passés à notre script python à partir du .sh
-default_search = str(sys.argv[1])
-Entrez.email = str(sys.argv[2])
-skip_predictions = str(sys.argv[3])
-blast_type = str(sys.argv[4])
+default_search = "True"
+Entrez.email = "ls.laidlaw@gmail.com"
+skip_predictions = "False"
+blast_type = "local"
 
 # Creeons notre dossier de travail
-directory = "runFiles/"
+directory = "runFiles"
 if not os.path.exists(directory):
     os.makedirs(directory)
 
@@ -77,20 +88,21 @@ for record in multifasta_var:
 
 
 
-# Envoyons ces donnés pour un BLAST chez NCBI
-print(">> BLASTons notre gène d'interet au NCBI...")
-for record in SeqIO.parse(str("/".join([directory,"gene_interet.fasta"])),"fasta"):
-	Blast_xml = NCBIWWW.qblast('blastn', 'nt', record.seq)
-	blast_File = open(str("/".join([directory,"gene_interet_BLAST.xml"])), "w")
-	blast_File.write(Blast_xml.read())
-	Blast_xml.close()
-	blast_File.close()
+# # Envoyons ces donnés pour un BLAST chez NCBI
+# print(">> BLASTons notre gène d'interet au NCBI...")
+# for record in SeqIO.parse(str("/".join([directory,"gene_interet.fasta"])),"fasta"):
+# 	Blast_xml = NCBIWWW.qblast('blastn', 'nt', record.seq)
+# 	blast_File = open(str("/".join([directory,"gene_interet_BLAST.xml"])), "w")
+# 	blast_File.write(Blast_xml.read())
+# 	Blast_xml.close()
+# 	blast_File.close()
 
 
 ### Analyse des données
 
 #Mise en place de la dictionaire {HSP bit-score : Identifiant}
 HSPdict = {}
+orgIDict = {}
 OrganismeDict = {}
 regexID = r"(?<=gi\|)(\d*)(?=\|)"
 regexOrganisme = r"^((?:\S+\s+){1}\S+).*"
@@ -104,9 +116,10 @@ for record in NCBIXML.parse(open(str("/".join([directory,"gene_interet_BLAST.xml
             	Organisme = align.hit_def.replace("PREDICTED: ","")
             	Organisme = re.findall(regexOrganisme, Organisme)[0]
             	orgvalue = {hsp.bits : Organisme}
+            	orgID = { Organisme : Id_correspondant}
+            	orgIDict.update(orgID)
             	OrganismeDict.update(orgvalue)
             	HSPdict.update(newdictValue)
-
 
 ### Triage des données
 # Creer et trier une liste à partir des scores du dictionnaire
@@ -138,7 +151,7 @@ HSPdict = {y:x for x,y in HSPdict.items()}
 
 # Ecrivons les titres dans le fichier résultats
 results_File = open(str("/".join([directory,"results.txt"])), "w")
-Texte_a_ecrire = '{:^9}     {:^25} {:^21}'.format("Bit-Score", "Espèce","Identifiant/Accession")
+Texte_a_ecrire = '{:^9}     {:^25} {:^21}'.format("Bit-Score", "Espèce","Identifiant")
 results_File.write("%s\n" % Texte_a_ecrire)
 Texte_a_ecrire = '{:_<9}     {:_<25} {:_<21}'.format("", "","")
 results_File.write("%s\n" % Texte_a_ecrire)
@@ -167,8 +180,12 @@ for chaqueSequence in sequences_Parsed:
 # Creeons le base de donnés qui servira ensuite pour le BLAST en local
 SeqIO.write(multifasta_var, str("/".join([directory,"base_de_donnes.fasta"])),"fasta")
 sequences_Brut.close()
+
 cmd = "makeblastdb -in " + str("/".join([directory,"base_de_donnes.fasta"])) + " -parse_seqids -dbtype nucl"
-os.system(cmd)
+subprocess.check_output(
+	cmd,
+	stderr=subprocess.STDOUT,
+	shell=True)
 
 
 # Separons les identifiants pour que mon script les comprends 
@@ -224,6 +241,7 @@ for myId in myIds:
 	Blast_xml = NcbiblastnCommandline(query=exportNameSeq,db=str("/".join([directory,"base_de_donnes.fasta"])), outfmt=5, out=exportNameBLAST)
 	os.system(str(Blast_xml))
 
+
 	#Mise en place des dictionaires
 	microHSPdict = {}
 	for record in NCBIXML.parse(open(exportNameBLAST)) :
@@ -260,14 +278,16 @@ for myId in myIds:
 	results_File = open(str("/".join([directory,"results.txt"])), "a")
 	results_File.write(">> Résultats pour " + Organisme_interet + " :\n")
 
-
+	accencion2Id = {}
 	regexID = r"(?<=[a-z]{3}\|)(.*)(?=\|)"
 	for score in HPS_trie:
-		microID = microHSPdict[score]
+		microID = orgIDict[OrganismeDict[score]]
 		try:
-			microID = re.findall(regexID, microID)[0]
+			accencionID = re.findall(regexID, microHSPdict[score])[0]
 		except:
-			microID = microHSPdict[score]
+			accencionID = microHSPdict[score]
+		newdictValue = {accencionID : microID}
+		accencion2Id.update(newdictValue)
 		Texte_a_ecrire = '{:>9}      {:25} {:21}'.format(" " + str(float(score)), str(OrganismeDict[score]),str(microID))
 		results_File.write("%s\n" % Texte_a_ecrire)
 	results_File.write("" + "\n")
@@ -278,6 +298,27 @@ for myId in myIds:
 print("\n>> Resultats Enregistrés sous \"resultats.txt\"")
 
 
+# Developpment de l'arbre phylogenique
+in_file = "base_de_donnes.fasta"
+mon_arbre = str("/".join([directory,"mon_arbre.txt"]))
+clustalomega_cline = ClustalOmegaCommandline(infile=in_file, outfile="base_de_donnes_alignes.fasta", guidetree_out="mon_arbre.txt",verbose=True, auto=True, force=True)
+cmd = "cd runFiles\n" + str(clustalomega_cline)
+cmd = str(cmd)
+os.system(cmd)
 
+with open(mon_arbre, 'r') as file :
+  filedata = file.read()
 
+orgIDict = {y:x for x,y in orgIDict.items()}
+for key in accencion2Id.keys():
+	especeName = orgIDict[accencion2Id[key]]
+	especeName = especeName.replace(" ", "_")
+	filedata = filedata.replace(key, especeName)
+
+mon_arbre2 = str("/".join([directory,"mon_arbre_2.txt"]))
+with open(mon_arbre2, 'w+') as file :
+  file.write(filedata)
+
+tree = Phylo.read(mon_arbre2, "newick")
+Phylo.draw(tree)
 
