@@ -1,0 +1,41 @@
+Bit-Score              Espèce                Identifiant     
+_________     _________________________ _____________________
+
+>> Résultats pour Homo sapiens :
+  5748.62      Macaca fascicularis       982280190            
+  5732.39      Macaca nemestrina         795411137            
+  5654.85      Chlorocebus sabaeus       635064225            
+  5059.74      Cebus capucinus           1044422013           
+  4650.37      Microcebus murinus        1149877709           
+
+>> Résultats pour Macaca fascicularis :
+  8935.21      Macaca nemestrina         795411137            
+  6669.37      Chlorocebus sabaeus       635064225            
+  5373.02      Cebus capucinus           1044422013           
+  490.482      Homo sapiens              221044669            
+
+>> Résultats pour Macaca nemestrina :
+  8935.21      Macaca fascicularis       982280190            
+  6643.52      Chlorocebus sabaeus       635064225            
+  5350.86      Cebus capucinus           1044422013           
+  484.943      Homo sapiens              221044669            
+
+>> Résultats pour Chlorocebus sabaeus :
+  6669.37      Macaca fascicularis       982280190            
+  6643.52      Macaca nemestrina         795411137            
+  5302.85      Cebus capucinus           1044422013           
+  490.482      Homo sapiens              221044669            
+
+>> Résultats pour Cebus capucinus :
+  5373.02      Macaca fascicularis       982280190            
+  5350.86      Macaca nemestrina         795411137            
+  5302.85      Chlorocebus sabaeus       635064225            
+  479.403      Homo sapiens              221044669            
+
+>> Résultats pour Microcebus murinus :
+  4872.58      Macaca fascicularis       982280190            
+  4859.66      Chlorocebus sabaeus       635064225            
+  4846.73      Macaca nemestrina         795411137            
+  4388.76      Cebus capucinus           1044422013           
+  355.677      Homo sapiens              221044669            
+

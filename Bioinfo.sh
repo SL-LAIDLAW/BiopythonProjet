@@ -37,14 +37,17 @@ echo " "
 
 
 # Obtenir addresse mail de l'utilisateur
-	echo "$(tput setaf 5)####$(tput sgr 0) Quelle est votre addresse email ?"
+	echo "$(tput setaf 5)####$(tput sgr 0) Quel est votre nom et prénom?"
+	read nom_utilisateur
+echo " "
+echo " "
+	echo "$(tput setaf 5)####$(tput sgr 0) Quel est votre addresse mail?"
 	read email
-
-
 echo " "
 echo " "
-
 
 echo "Lancons le .py..."
+echo " "
+echo " "
 
-python3 BioInfo.py "$default_search" "$email" "$skip_predictions" "$blast_type"
+python3 BioInfo.py "$default_search" "$email" "$nom_utilisateur"

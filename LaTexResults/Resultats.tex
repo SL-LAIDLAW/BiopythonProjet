@@ -1,0 +1,172 @@
+\documentclass[a4paper]{article}
+\usepackage{moreverb,url}
+\usepackage{float}
+\usepackage{verbatim}
+\usepackage[francais]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+
+\RequirePackage{graphicx}
+\RequirePackage{latexsym,ifthen,rotating,calc,textcase,booktabs,color,endnotes}
+\RequirePackage{amsfonts,amssymb,amsbsy,amsmath,amsthm}
+\RequirePackage[errorshow]{tracefnt}
+
+\usepackage{multicol}
+
+\usepackage{times}
+\usepackage[scaled=.95]{helvet}
+
+\usepackage[colorlinks,bookmarksopen,bookmarksnumbered,citecolor=red,urlcolor=red]{hyperref}
+
+
+
+\usepackage[text={174mm,258mm},%
+papersize={210mm,297mm},%
+columnsep=12pt,%
+headsep=21pt,%
+centering]{geometry}
+\usepackage{ftnright}
+
+
+
+
+\begin{document}
+
+\noindent{\huge{\textbf{Résultats du Projet HLIN404 pour gène DEC2 chez Homo sapiens}}}\\
+
+\noindent{\Large{\textbf{Sean Louis LAIDLAW}}}
+\vspace*{7mm}
+
+
+\begin{multicols}{2}[
+\noindent\textbf{Objectif : }Ce document a comme raison d'être, l'affichage des résultats BLAST d'un gène d'intérêt — ici il s'agit du gène DEC2 — ainsi que des informations complémentaires, comme le BLAST des top quatre résultats trouvé dernièrement, ainsi que la mise en place d'un arbre phylogénétique.
+\vspace*{1mm}]
+
+\section{Introduction}
+Tout d'abord nous avons choisi avec le script bash "Bioinfo.sh", le gène DEC2 à analyser. Ce logiciel a comme but de trouver quels modèles animaux seront les plus adapté pour étudier un gène donnée. Nous avons donc construit le logiciel d'un tel sorte à ce que :
+\begin{enumerate}
+\item[(i)] On BLAST notre séquence du gene d'intérêt sur le NCBI, et on récupère les 4 séquences qui ont les scores HSP le plus élevés.
+
+\item[(ii)] Ensuite on crée un base de données à partir de la séquence du gène DEC2 du Homo sapiens ainsi que les séquences des 4 espèces les plus proches.
+
+\item[(iii)] On BLAST chacun de ces 4 séquences, en local en utilisant ce base de données, et on trie les résultats afin de ne pas obtenir de duplicatas.
+
+\item[(iv)] À partir du multifasta crée lors de la recherche des quatre espèces les plus proche à Homo sapiens, on construit un arbre phylogénétique.
+\end{enumerate}
+
+\section{BLAST initiale sur NCBI}
+Avec le fasta de notre gène d'intérêt en main, on l'as envoyé au NCBI pour être BLASTé et on a récupéré les résultats suivants :
+\begin{table}[H]
+\small\sf\centering
+\caption{Résultats du BLAST NCBI sur gène d'intérêt de l'espèce Homo sapiens}
+\begin{tabular}{lll}
+\toprule
+Bit-Score&Espèce&Identifiant\\
+\midrule
+5748.62 & Macaca fascicularis & 982280190\\
+5732.39 & Macaca nemestrina & 795411137\\
+5654.85 & Chlorocebus sabaeus & 635064225\\
+5059.74 & Cebus capucinus & 1044422013\\
+4650.37 & Microcebus murinus & 1149877709\\
+
+\bottomrule
+\end{tabular}\\[10pt]
+\end{table}
+
+\section{BLAST local des autres espèces}
+À partir des réponses trouvées dans la dernière partie, on a analysé avec un BLAST en local, chacun des quatre espèces trouvés
+
+\subsection{Macaca fascicularis}
+\begin{table}[H]
+\small\sf\centering
+\caption{Résultats du BLAST local pour le gène d'intérêt de l'espèce Macaca fascicularis}
+\begin{tabular}{lll}
+\toprule
+Bit-Score&Espèce&Identifiant\\
+\midrule
+8935.21 & Macaca nemestrina & 795411137\\
+6669.37 & Chlorocebus sabaeus & 635064225\\
+5373.02 & Cebus capucinus & 1044422013\\
+490.482 & Homo sapiens & 221044669\\
+
+\bottomrule
+\end{tabular}\\[10pt]
+\end{table}
+
+\subsection{Macaca nemestrina}
+\begin{table}[H]
+\small\sf\centering
+\caption{Résultats du BLAST local pour le gène d'intérêt de l'espèce Macaca nemestrina}
+\begin{tabular}{lll}
+\toprule
+Bit-Score&Espèce&Identifiant\\
+\midrule
+8935.21 & Macaca fascicularis & 982280190\\
+6643.52 & Chlorocebus sabaeus & 635064225\\
+5350.86 & Cebus capucinus & 1044422013\\
+484.943 & Homo sapiens & 221044669\\
+
+\bottomrule
+\end{tabular}\\[10pt]
+\end{table}
+
+\subsection{Chlorocebus sabaeus}
+\begin{table}[H]
+\small\sf\centering
+\caption{Résultats du BLAST local pour le gène d'intérêt de l'espèce Chlorocebus sabaeus}
+\begin{tabular}{lll}
+\toprule
+Bit-Score&Espèce&Identifiant\\
+\midrule
+6669.37 & Macaca fascicularis & 982280190\\
+6643.52 & Macaca nemestrina & 795411137\\
+5302.85 & Cebus capucinus & 1044422013\\
+490.482 & Homo sapiens & 221044669\\
+
+\bottomrule
+\end{tabular}\\[10pt]
+\end{table}
+
+\subsection{Cebus capucinus}
+\begin{table}[H]
+\small\sf\centering
+\caption{Résultats du BLAST local pour le gène d'intérêt de l'espèce Cebus capucinus}
+\begin{tabular}{lll}
+\toprule
+Bit-Score&Espèce&Identifiant\\
+\midrule
+5373.02 & Macaca fascicularis & 982280190\\
+5350.86 & Macaca nemestrina & 795411137\\
+5302.85 & Chlorocebus sabaeus & 635064225\\
+479.403 & Homo sapiens & 221044669\\
+
+\bottomrule
+\end{tabular}\\[10pt]
+\end{table}
+
+\end{multicols}
+
+
+\section{Arbre Phylogénétique}
+\begin{figure}[H]
+\begin{verbatim}
+  __________________________________________________________________ Homo_sapiens
+_|
+______________________________________________________________________ Chlorocebus_sabaeus
+ |        |
+          |          ______________________________________________ Cebus_capucinus
+____________________|_________________________________________________
+                    |                                             , Macaca_nemestrina
+                    |_____________________________________________|
+                                                                  | Macaca_fascicularis
+
+
+\end{verbatim}
+\caption{Arbre Phylogénétique}
+\label{arbrephylogénétique}
+\end{figure}
+
+
+
+\end{document}

@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-
 ### Initialisation
 #Packages utilisés
 import os
-import re
 import sys
 import subprocess
 from Bio import Entrez
@@ -15,32 +13,37 @@ from Bio.Blast import NCBIXML
 from Bio.Blast.Applications import NcbiblastnCommandline
 
 from Bio.Align.Applications import ClustalOmegaCommandline
+from contextlib import redirect_stdout
 from Bio import AlignIO
 from Bio import Phylo
+import pylab
+import re
+import io
 
-
-# # Les arguments passés à notre script python à partir du .sh
-# default_search = str(sys.argv[1])
-# Entrez.email = str(sys.argv[2])
-# skip_predictions = str(sys.argv[3])
-# blast_type = str(sys.argv[4])
 
 # Les arguments passés à notre script python à partir du .sh
-default_search = "True"
-Entrez.email = "ls.laidlaw@gmail.com"
-skip_predictions = "False"
-blast_type = "local"
+default_search = str(sys.argv[1])
+Entrez.email = str(sys.argv[2])
+nom_utilisateur = str(sys.argv[3])
+
 
 # Creeons notre dossier de travail
 directory = "runFiles"
 if not os.path.exists(directory):
     os.makedirs(directory)
 
+# Creeons notre dossier de résultat
+LaTexdir = "LaTexResults"
+if not os.path.exists(LaTexdir):
+    os.makedirs(LaTexdir)
+
+
+
 ## Obtention des données
-print(">> Obtention des données...")
 if default_search == "True":
 	# Si on choisi default
 	Id_correspondant = "12583668"
+	nom_gene_interet = "DEC2"
 
 
 if default_search == "False":
@@ -64,19 +67,21 @@ if default_search == "False":
 		elif Id_correspondant == "retour":
 			search_query = input("Votre Recherche?.. ")
 		else:
+			nom_gene_interet = input("Nom du gène?.. ")
 			break
 	requete_Brut.close()
 
 
 # Cherchons le séquence correspondant à notre Id
 multifasta_var = []
+print(">> Obtention des données...")
 sequences_Brut = Entrez.efetch(db="Nucleotide", id=Id_correspondant, rettype="gb")
-print(">> Données enregistrés...")
 sequences_Parsed = SeqIO.parse(sequences_Brut,"gb")
 
 for chaqueSequence in sequences_Parsed:
 	multifasta_var.append(chaqueSequence)
 SeqIO.write(multifasta_var, str("/".join([directory,"gene_interet.fasta"])),"fasta")
+print(">> Données enregistrés...")
 sequences_Brut.close()
 
 # Exportons séquence du gène d'intêret sous format fasta
@@ -84,22 +89,22 @@ for record in multifasta_var:
 	Organisme_interet = record.description.replace("PREDICTED: ","")
 	regex = r"^((?:\S+\s+){1}\S+).*"
 	Organisme_interet = re.findall(regex, Organisme_interet)[0]
+	Organisme_gene_interet = Organisme_interet
 	print("Organisme du gene initiale est : " + Organisme_interet)
 
 
 
-# # Envoyons ces donnés pour un BLAST chez NCBI
-# print(">> BLASTons notre gène d'interet au NCBI...")
-# for record in SeqIO.parse(str("/".join([directory,"gene_interet.fasta"])),"fasta"):
-# 	Blast_xml = NCBIWWW.qblast('blastn', 'nt', record.seq)
-# 	blast_File = open(str("/".join([directory,"gene_interet_BLAST.xml"])), "w")
-# 	blast_File.write(Blast_xml.read())
-# 	Blast_xml.close()
-# 	blast_File.close()
+# Envoyons ces donnés pour un BLAST chez NCBI
+print(">> BLASTons notre gène d'interet au NCBI...")
+for record in SeqIO.parse(str("/".join([directory,"gene_interet.fasta"])),"fasta"):
+	Blast_xml = NCBIWWW.qblast('blastn', 'nt', record.seq)
+	blast_File = open(str("/".join([directory,"gene_interet_BLAST.xml"])), "w")
+	blast_File.write(Blast_xml.read())
+	Blast_xml.close()
+	blast_File.close()
 
 
 ### Analyse des données
-
 #Mise en place de la dictionaire {HSP bit-score : Identifiant}
 HSPdict = {}
 orgIDict = {}
@@ -158,9 +163,11 @@ results_File.write("%s\n" % Texte_a_ecrire)
 results_File.write("\n>> Résultats pour " + Organisme_interet + " :\n")
 
 # Ecrivons ces premiers résultats dans le fichier résultats
+TableaugeneInteret = ""
 for score in top_HPS:
 	Texte_a_ecrire = '{:>9}      {:25} {:21}'.format(str(float(score)), str(OrganismeDict[score]),str(HSPdict[score]))
 	results_File.write("%s\n" % Texte_a_ecrire)
+	TableaugeneInteret = TableaugeneInteret + (str(float(score)) + " & " + OrganismeDict[score] + " & " + HSPdict[score] + "\\\\\n")
 results_File.write("" + "\n")
 
 
@@ -203,12 +210,16 @@ HSPdict = {y:x for x,y in HSPdict.items()}
 
 # Commoncons le compteur pour pouvoir suivre le nombre de boucles qui ont lieu
 compteur = 0
+Tableaugene = {}
+ListeOrganismesInteret = {}
 
 # Boucle pour blaster, et ecrire les résultats pour chacun de nos résultats du blast précedent
 for myId in myIds:
 	# Declarons variables, et disons ce qu'on fait
 	compteur +=1
 	Organisme_interet = str(OrganismeDict[HSPdict[myId]])
+	newdictValue = {compteur : Organisme_interet}
+	ListeOrganismesInteret.update(newdictValue)
 	message = "\n> Début du boucle nb." + str(compteur) + " sur l'espèce :"
 	message = str("echo \"$(tput setaf 6)" + message + "$(tput sgr 0)\"")
 	os.system(message)
@@ -223,7 +234,7 @@ for myId in myIds:
 
 	# Exportons séquence du gène d'intêret sous format fasta
 	multifasta_var = []
-	exportNameSeq = str(directory) + str(compteur) + "_" + Organisme_interet + ".fasta"
+	exportNameSeq = str(directory) + "/" + str(compteur) + "_" + Organisme_interet + ".fasta"
 
 	for chaqueSequence in sequences_Parsed:
 		multifasta_var.append(chaqueSequence)
@@ -235,7 +246,7 @@ for myId in myIds:
 	print(">> Analyse BLAST des séquences...")
 	
 	# create unique export name
-	exportNameBLAST = str(directory) + str(compteur) + "_" + Organisme_interet + "_BLAST.xml"
+	exportNameBLAST = str(directory) + "/" + str(compteur) + "_" + Organisme_interet + "_BLAST.xml"
 
 	# BLASTons en local
 	Blast_xml = NcbiblastnCommandline(query=exportNameSeq,db=str("/".join([directory,"base_de_donnes.fasta"])), outfmt=5, out=exportNameBLAST)
@@ -279,6 +290,7 @@ for myId in myIds:
 	results_File.write(">> Résultats pour " + Organisme_interet + " :\n")
 
 	accencion2Id = {}
+	Tableaugene_temp = ""
 	regexID = r"(?<=[a-z]{3}\|)(.*)(?=\|)"
 	for score in HPS_trie:
 		microID = orgIDict[OrganismeDict[score]]
@@ -290,23 +302,29 @@ for myId in myIds:
 		accencion2Id.update(newdictValue)
 		Texte_a_ecrire = '{:>9}      {:25} {:21}'.format(" " + str(float(score)), str(OrganismeDict[score]),str(microID))
 		results_File.write("%s\n" % Texte_a_ecrire)
+		Tableaugene_temp = str(Tableaugene_temp) + (str(float(score)) + " & " + OrganismeDict[score] + " & " + microID + "\\\\\n")
 	results_File.write("" + "\n")
 
+	Tableaugene.update({compteur : Tableaugene_temp}) 
 	print("> fin du boucle nb." + str(compteur))
 
 
 print("\n>> Resultats Enregistrés sous \"resultats.txt\"")
 
 
-# Developpment de l'arbre phylogenique
-in_file = "base_de_donnes.fasta"
-mon_arbre = str("/".join([directory,"mon_arbre.txt"]))
-clustalomega_cline = ClustalOmegaCommandline(infile=in_file, outfile="base_de_donnes_alignes.fasta", guidetree_out="mon_arbre.txt",verbose=True, auto=True, force=True)
+### Creation de l'arbre phylogenique
+# Creeons le fichier newark pour l'arbre
+multifasta = "base_de_donnes.fasta"
+guidetree_accession = str("/".join([directory,"guidetree_accession.txt"]))
+clustalomega_cline = ClustalOmegaCommandline(infile=multifasta, outfile="base_de_donnes_alignes.fasta", guidetree_out="guidetree_accession.txt",verbose=True, auto=True, force=True)
 cmd = "cd runFiles\n" + str(clustalomega_cline)
 cmd = str(cmd)
 os.system(cmd)
 
-with open(mon_arbre, 'r') as file :
+
+# Remplacons le numero ascencion avec le nom de l'espèce
+guidetree_binomiale = str("/".join([directory,"guidetree_binomiale.txt"]))
+with open(guidetree_accession, 'r') as file :
   filedata = file.read()
 
 orgIDict = {y:x for x,y in orgIDict.items()}
@@ -315,10 +333,49 @@ for key in accencion2Id.keys():
 	especeName = especeName.replace(" ", "_")
 	filedata = filedata.replace(key, especeName)
 
-mon_arbre2 = str("/".join([directory,"mon_arbre_2.txt"]))
-with open(mon_arbre2, 'w+') as file :
+with open(guidetree_binomiale, 'w+') as file :
   file.write(filedata)
 
-tree = Phylo.read(mon_arbre2, "newick")
-Phylo.draw(tree)
 
+# Creer à partir de guidetree binomiale l'arbre en ASCII
+arbre_out = io.StringIO()
+arbre_in = Phylo.read(guidetree_binomiale, "newick")
+
+Phylo.draw_ascii(arbre_in,file=arbre_out,column_width=90)
+arbre_ascii = str(arbre_out.getvalue())
+arbre_out.close()
+
+
+
+
+
+### Creons le fichier LaTex pour afficher les résultats
+with open("Resultat_Template.tex", 'r') as file :
+  resultat_latex = file.read()
+
+# Creer le header
+resultat_latex = resultat_latex.replace("[NomUtilisateur*]", nom_utilisateur)
+resultat_latex = resultat_latex.replace("[emailUtilisateur*]", Entrez.email)
+resultat_latex = resultat_latex.replace("[geneInteret*]", nom_gene_interet)
+
+# Creer les Tableaux dans le fichier LaTex
+resultat_latex = resultat_latex.replace("[TableaugeneInteret*]", str(TableaugeneInteret))
+resultat_latex = resultat_latex.replace("[especegeneInteret*]", Organisme_gene_interet)
+
+resultat_latex = resultat_latex.replace("[Tableaugene1*]",str(Tableaugene[1]))
+resultat_latex = resultat_latex.replace("[especegene1*]",ListeOrganismesInteret[1])
+
+resultat_latex = resultat_latex.replace("[Tableaugene2*]",str(Tableaugene[2]))
+resultat_latex = resultat_latex.replace("[especegene2*]",ListeOrganismesInteret[2])
+
+resultat_latex = resultat_latex.replace("[Tableaugene3*]",str(Tableaugene[3]))
+resultat_latex = resultat_latex.replace("[especegene3*]",ListeOrganismesInteret[3])
+
+resultat_latex = resultat_latex.replace("[Tableaugene4*]",str(Tableaugene[4]))
+resultat_latex = resultat_latex.replace("[especegene4*]",ListeOrganismesInteret[4])
+
+resultat_latex = resultat_latex.replace("[monarbrephylo*]", arbre_ascii)
+with open("LaTexResults/Resultats.tex", 'w+') as file :
+  file.write(resultat_latex)
+
+os.system("cd LaTexResults\npdflatex --shell-escape --file-line-error --synctex=1 Resultats.tex")

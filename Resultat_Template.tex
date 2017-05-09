@@ -1,0 +1,141 @@
+\documentclass[a4paper]{article}
+\usepackage{moreverb,url}
+\usepackage{float}
+\usepackage{verbatim}
+\usepackage[francais]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+
+\RequirePackage{graphicx}
+\RequirePackage{latexsym,ifthen,rotating,calc,textcase,booktabs,color,endnotes}
+\RequirePackage{amsfonts,amssymb,amsbsy,amsmath,amsthm}
+\RequirePackage[errorshow]{tracefnt}
+
+\usepackage{multicol}
+
+\usepackage{times}
+\usepackage[scaled=.95]{helvet}
+
+\usepackage[colorlinks,bookmarksopen,bookmarksnumbered,citecolor=red,urlcolor=red]{hyperref}
+
+
+
+\usepackage[text={174mm,258mm},%
+papersize={210mm,297mm},%
+columnsep=12pt,%
+headsep=21pt,%
+centering]{geometry}
+\usepackage{ftnright}
+
+
+
+
+\begin{document}
+
+\noindent{\huge{\textbf{Résultats du Projet HLIN404 pour gène [geneInteret*] chez [especegeneInteret*]}}}\\
+
+\noindent{\Large{\textbf{[NomUtilisateur*]}}}
+\vspace*{7mm}
+
+
+\begin{multicols}{2}[
+\noindent\textbf{Objectif : }Ce document a comme raison d'être, l'affichage des résultats BLAST d'un gène d'intérêt — ici il s'agit du gène [geneInteret*] — ainsi que des informations complémentaires, comme le BLAST des top quatre résultats trouvé dernièrement, ainsi que la mise en place d'un arbre phylogénétique.
+\vspace*{1mm}]
+
+\section{Introduction}
+Tout d'abord nous avons choisi avec le script bash "Bioinfo.sh", le gène [geneInteret*] à analyser. Ce logiciel a comme but de trouver quels modèles animaux seront les plus adapté pour étudier un gène donnée. Nous avons donc construit le logiciel d'un tel sorte à ce que :
+\begin{enumerate}
+\item[(i)] On BLAST notre séquence du gene d'intérêt sur le NCBI, et on récupère les 4 séquences qui ont les scores HSP le plus élevés.
+
+\item[(ii)] Ensuite on crée un base de données à partir de la séquence du gène [geneInteret*] du [especegeneInteret*] ainsi que les séquences des 4 espèces les plus proches.
+
+\item[(iii)] On BLAST chacun de ces 4 séquences, en local en utilisant ce base de données, et on trie les résultats afin de ne pas obtenir de duplicatas.
+
+\item[(iv)] À partir du multifasta crée lors de la recherche des quatre espèces les plus proche à [especegeneInteret*], on construit un arbre phylogénétique.
+\end{enumerate}
+
+\section{BLAST initiale sur NCBI}
+Avec le fasta de notre gène d'intérêt en main, on l'as envoyé au NCBI pour être BLASTé et on a récupéré les résultats suivants :
+\begin{table}[H]
+\small\sf\centering
+\caption{Résultats du BLAST NCBI sur gène d'intérêt de l'espèce [especegeneInteret*]}
+\begin{tabular}{lll}
+\toprule
+Bit-Score&Espèce&Identifiant\\
+\midrule
+[TableaugeneInteret*]
+\bottomrule
+\end{tabular}\\[10pt]
+\end{table}
+
+\section{BLAST local des autres espèces}
+À partir des réponses trouvées dans la dernière partie, on a analysé avec un BLAST en local, chacun des quatre espèces trouvés
+
+\subsection{[especegene1*]}
+\begin{table}[H]
+\small\sf\centering
+\caption{Résultats du BLAST local pour le gène d'intérêt de l'espèce [especegene1*]}
+\begin{tabular}{lll}
+\toprule
+Bit-Score&Espèce&Identifiant\\
+\midrule
+[Tableaugene1*]
+\bottomrule
+\end{tabular}\\[10pt]
+\end{table}
+
+\subsection{[especegene2*]}
+\begin{table}[H]
+\small\sf\centering
+\caption{Résultats du BLAST local pour le gène d'intérêt de l'espèce [especegene2*]}
+\begin{tabular}{lll}
+\toprule
+Bit-Score&Espèce&Identifiant\\
+\midrule
+[Tableaugene2*]
+\bottomrule
+\end{tabular}\\[10pt]
+\end{table}
+
+\subsection{[especegene3*]}
+\begin{table}[H]
+\small\sf\centering
+\caption{Résultats du BLAST local pour le gène d'intérêt de l'espèce [especegene3*]}
+\begin{tabular}{lll}
+\toprule
+Bit-Score&Espèce&Identifiant\\
+\midrule
+[Tableaugene3*]
+\bottomrule
+\end{tabular}\\[10pt]
+\end{table}
+
+\subsection{[especegene4*]}
+\begin{table}[H]
+\small\sf\centering
+\caption{Résultats du BLAST local pour le gène d'intérêt de l'espèce [especegene4*]}
+\begin{tabular}{lll}
+\toprule
+Bit-Score&Espèce&Identifiant\\
+\midrule
+[Tableaugene4*]
+\bottomrule
+\end{tabular}\\[10pt]
+\end{table}
+
+\end{multicols}
+
+
+\section{Arbre Phylogénétique}
+\begin{figure}[H]
+\begin{verbatim}
+[monarbrephylo*]
+\end{verbatim}
+\caption{Arbre Phylogénétique}
+\label{arbrephylogénétique}
+\end{figure}
+
+
+
+\end{document}
